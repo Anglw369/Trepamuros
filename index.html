@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trepamuros · Agenda</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕸️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0b0d1a;
+    --bg:#0e1330;
+    --bg2:#141a44;
+    --red:#d61f2c;
+    --red-deep:#8c0f1c;
+    --blue:#1c3f9e;
+    --blue-deep:#0e2364;
+    --web:#e9ecff;
+    --paper:#f4f3ea;
+    --gold:#ffce3d;
+    --ok:#2fae66;
+    --line:#05060d;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *,*::before,*::after{box-sizing:inherit}
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(214,31,44,0.18), transparent 55%),
+      repeating-radial-gradient(circle at 0 0, rgba(233,236,255,0.05) 0, rgba(233,236,255,0.05) 1px, transparent 1px, transparent 26px),
+      var(--bg);
+    color:var(--web);
+    min-height:100%;
+  }
+  .title-font{font-family:'Bangers',cursive; letter-spacing:.5px;}
+
+  /* ---------- Layout shell ---------- */
+  #app{max-width:920px;margin:0 auto;padding:18px 16px 96px;}
+  header.top{
+    display:flex;align-items:center;gap:12px;justify-content:space-between;
+    padding:14px 4px 18px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .web-icon{font-size:28px;filter:drop-shadow(0 2px 0 var(--line));}
+  .brand h1{
+    font-size:32px;margin:0;color:var(--red);
+    -webkit-text-stroke:1.4px var(--line);
+    text-shadow:2px 3px 0 var(--line);
+  }
+  .brand small{display:block;font-size:11px;color:var(--web);opacity:.7;letter-spacing:.06em;margin-top:-4px;}
+  .today-chip{
+    background:var(--blue);border:2px solid var(--line);border-radius:10px;
+    padding:6px 12px;font-size:12.5px;font-weight:700;text-transform:capitalize;
+    box-shadow:3px 3px 0 var(--line);
+  }
+
+  nav.tabs{
+    display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;
+    padding-bottom:4px;
+  }
+  nav.tabs button{
+    flex:0 0 auto;
+    font-family:'Bangers',cursive;font-size:17px;letter-spacing:.5px;
+    background:var(--bg2);color:var(--web);border:2px solid var(--line);
+    border-radius:10px;padding:8px 16px;cursor:pointer;
+    box-shadow:3px 3px 0 var(--line);
+    transition:transform .12s ease;
+  }
+  nav.tabs button.active{background:var(--red);box-shadow:3px 3px 0 var(--line), inset 0 0 0 2px rgba(255,255,255,.15);}
+  nav.tabs button:hover{transform:translateY(-1px);}
+  nav.tabs button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+    outline:3px solid var(--gold); outline-offset:2px;
+  }
+
+  section.view{display:none;animation:fade .18s ease;}
+  section.view.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .panel{
+    background:var(--paper);color:var(--ink);
+    border:3px solid var(--line);border-radius:14px;
+    box-shadow:5px 5px 0 var(--line);
+    padding:16px;margin-bottom:16px;
+  }
+  .panel h2{
+    font-family:'Bangers',cursive;font-size:22px;margin:0 0 12px;
+    color:var(--red-deep);letter-spacing:.5px;
+  }
+  .panel h2 .em{color:var(--blue-deep)}
+  .muted{opacity:.65;font-size:13px}
+
+  /* ---------- Buttons / inputs ---------- */
+  .btn{
+    font-family:'Inter';font-weight:700;font-size:13.5px;
+    background:var(--blue);color:#fff;border:2px solid var(--line);
+    border-radius:8px;padding:8px 14px;cursor:pointer;
+    box-shadow:2px 2px 0 var(--line);
+  }
+  .btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--line);}
+  .btn.red{background:var(--red);}
+  .btn.ghost{background:#fff;color:var(--ink);}
+  .btn.sm{padding:5px 10px;font-size:12px;border-radius:6px;}
+  .btn.icon{padding:6px 9px;}
+  input,select,textarea{
+    font-family:'Inter';font-size:14px;padding:8px 10px;
+    border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);
+    width:100%;
+  }
+  label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;opacity:.7;display:block;margin-bottom:4px;}
+  .field{margin-bottom:10px;}
+  .row{display:flex;gap:10px;}
+  .row > *{flex:1;min-width:0;}
+
+  /* ---------- Dashboard ---------- */
+  .today-list .item, .agenda-item{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 8px;border-radius:8px;border:2px solid var(--line);
+    background:#fff;margin-bottom:8px;
+  }
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;border:2px solid var(--line);}
+  .item .time{font-weight:800;font-size:12.5px;min-width:78px;color:var(--blue-deep)}
+  .item .txt{flex:1;font-size:14px;}
+  .item .txt small{display:block;opacity:.6;font-weight:600;}
+  .empty{
+    text-align:center;padding:18px 10px;opacity:.55;font-size:13.5px;
+  }
+
+  .todo-row{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px dashed rgba(0,0,0,.15)}
+  .todo-row:last-child{border-bottom:none}
+  .todo-row input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;accent-color:var(--red);}
+  .todo-row span{flex:1;font-size:14.5px;}
+  .todo-row span.done{text-decoration:line-through;opacity:.45;}
+  .todo-row button{background:none;border:none;color:var(--red-deep);font-size:16px;cursor:pointer;padding:2px 6px;}
+
+  /* ---------- Calendar ---------- */
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .cal-head .btn{padding:6px 10px;}
+  .cal-head h3{font-family:'Bangers';font-size:20px;margin:0;color:var(--blue-deep);text-transform:capitalize;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .cal-dow{text-align:center;font-size:11px;font-weight:800;opacity:.55;padding-bottom:4px;}
+  .cal-cell{
+    aspect-ratio:1/1;border:2px solid var(--line);border-radius:8px;background:#fff;
+    padding:4px;font-size:12px;font-weight:700;cursor:pointer;position:relative;
+    display:flex;flex-direction:column;align-items:flex-start;
+    overflow:hidden;
+  }
+  .cal-cell.out{opacity:.3;background:#eee;}
+  .cal-cell.today{background:var(--gold);box-shadow:0 0 0 2px var(--red) inset;}
+  .cal-cell .dots{display:flex;gap:2px;flex-wrap:wrap;margin-top:auto;}
+  .cal-cell .dots .dot{width:6px;height:6px;border-width:1px;}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:12px;font-weight:600;}
+  .legend span{display:flex;align-items:center;gap:5px;}
+
+  /* ---------- Schedule (weekly) ---------- */
+  .tpl-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+  .week-wrap{min-width:600px;}
+  .week-header{display:grid;grid-template-columns:44px repeat(7,1fr);gap:3px;margin-bottom:3px;}
+  .week-header .h{font-weight:800;text-align:center;padding:4px 0;font-size:11px;}
+  .week-body{display:grid;grid-template-columns:44px repeat(7,1fr);gap:3px;position:relative;}
+  .hour-labels{position:relative;}
+  .hour-label{position:absolute;left:0;right:4px;top:0;transform:translateY(-6px);font-size:9.5px;opacity:.55;text-align:right;}
+  .week-col{
+    position:relative;background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:3px;
+    background-image:repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--rowh) - 1px), rgba(0,0,0,.10) calc(var(--rowh) - 1px), rgba(0,0,0,.10) var(--rowh));
+  }
+  .block{
+    position:absolute;left:2px;right:2px;border-radius:5px;border:2px solid var(--line);
+    padding:1px 4px;font-size:10.5px;font-weight:800;overflow:hidden;cursor:pointer;
+    line-height:1.1;box-shadow:1px 1px 0 var(--line);
+  }
+  .block.short{display:flex;align-items:center;gap:4px;white-space:nowrap;padding:0 4px;line-height:1;}
+  .block.short .bt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .block.short .btime{display:inline;flex:0 0 auto;font-size:8px;}
+  .block .btime{display:block;font-weight:600;font-size:9px;opacity:.9;}
+  .sched-list .item{cursor:pointer;}
+  .sched-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:11.5px;font-weight:600;}
+  .sched-legend span{display:flex;align-items:center;gap:5px;}
+  .sched-legend .dot{width:10px;height:10px;border-radius:3px;border:1.5px solid var(--line);}
+
+  /* ---------- Groups ---------- */
+  .group-card{border:2px solid var(--line);border-radius:10px;background:#fff;padding:12px;margin-bottom:12px;}
+  .group-card .ghead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .group-card .ghead h3{font-family:'Bangers';font-size:19px;margin:0;}
+  .group-card .swatch{width:14px;height:14px;border-radius:4px;border:2px solid var(--line);display:inline-block;margin-right:6px;}
+  .subtabs{display:flex;gap:6px;margin-bottom:8px;}
+  .subtabs button{
+    font-size:11.5px;font-weight:800;background:#fff;border:2px solid var(--line);border-radius:6px;
+    padding:4px 8px;cursor:pointer;
+  }
+  .subtabs button.active{background:var(--ink);color:#fff;}
+  .mini-list .row-item{
+    display:flex;justify-content:space-between;gap:8px;align-items:center;
+    padding:6px 4px;border-bottom:1px dashed rgba(0,0,0,.15);font-size:13px;
+  }
+  .mini-list .row-item:last-child{border-bottom:none;}
+  .mini-list .row-item .d{font-weight:800;color:var(--blue-deep);min-width:78px;}
+  .mini-list .row-item button{background:none;border:none;color:var(--red-deep);cursor:pointer;font-size:15px;}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(5,6,13,.72);display:none;
+    align-items:flex-end;justify-content:center;z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--paper);color:var(--ink);width:100%;max-width:480px;
+    border:3px solid var(--line);border-radius:16px 16px 0 0;
+    padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));
+    max-height:88vh;overflow-y:auto;
+  }
+  @media (min-width:640px){
+    .overlay{align-items:center;}
+    .modal{border-radius:16px;}
+  }
+  .modal h3{font-family:'Bangers';font-size:22px;margin:0 0 12px;color:var(--red-deep);}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
+  .close-x{position:absolute;top:10px;right:14px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);}
+
+
+  .stbtn{background:none;border:none;font-size:22px;cursor:pointer;padding:0 4px;line-height:1;flex:0 0 auto;}
+  .done{text-decoration:line-through;opacity:.5;}
+  .mini-list .row-item button[data-evedit]{color:var(--blue-deep);}
+  .btn.big{display:block;width:100%;padding:14px;font-size:15px;margin-bottom:10px;text-align:left;}
+  .fab{position:fixed;right:18px;bottom:22px;width:58px;height:58px;border-radius:50%;background:var(--red);color:#fff;font-size:34px;line-height:1;border:3px solid var(--line);box-shadow:3px 3px 0 var(--line);cursor:pointer;z-index:45;}
+  @media (min-width:900px){ #app{max-width:1000px;} .panel{padding:20px;} }
+  @media (max-width:640px){
+    nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;margin:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:var(--ink);border-top:3px solid var(--red);gap:4px;overflow:visible;}
+    nav.tabs button{flex:1;padding:9px 2px;font-size:13px;box-shadow:none;}
+    #app{padding-bottom:120px;}
+    .fab{bottom:84px;}
+    .brand h1{font-size:26px;}
+    input,select,textarea{font-size:16px;}
+  }
+  footer.credit{text-align:center;font-size:11px;opacity:.4;padding:20px 0 6px;}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="top">
+    <div class="brand">
+      <span class="web-icon">🕷️</span>
+      <div>
+        <h1 class="title-font">Trepamuros</h1>
+        <small>tu agenda, con sentido arácnido</small>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;"><button class="btn sm ghost" id="cloudBtn" title="Sincronizar entre dispositivos">☁️</button><div class="today-chip" id="todayChip"></div></div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-view="hoy" class="active">Hoy</button>
+    <button data-view="cal">Calendario</button>
+    <button data-view="horario">Horario</button>
+    <button data-view="grupos">Grupos</button>
+    <button data-view="pend">Pendientes</button>
+  </nav>
+
+  <!-- HOY -->
+  <section class="view active" id="view-hoy">
+    <div class="panel">
+      <h2>Horario de <span class="em">hoy</span></h2>
+      <div id="hoySchedule" class="today-list"></div>
+    </div>
+    <div class="panel">
+      <h2>Fechas <span class="em">próximas</span> (7 días)</h2>
+      <div id="hoyAgenda" class="today-list"></div>
+    </div>
+    <div class="panel">
+      <h2>Pendientes de <span class="em">hoy</span></h2>
+      <div class="field row" style="margin-bottom:10px;">
+        <input type="text" id="quickTodo" placeholder="Añadir pendiente para hoy...">
+        <button class="btn red sm" id="quickTodoBtn" style="flex:0 0 auto;">+ Añadir</button>
+      </div>
+      <div id="hoyTodos"></div>
+    </div>
+  </section>
+
+  <!-- CALENDARIO -->
+  <section class="view" id="view-cal">
+    <div class="panel">
+      <div class="row" style="margin-bottom:12px;"><button class="btn sm" id="importUTLBtn" style="flex:0 0 auto;">🎓 Importar calendario escolar UTL 2026-2027</button></div>
+      <div class="cal-head">
+        <button class="btn ghost sm" id="calPrev">◀</button>
+        <h3 id="calLabel"></h3>
+        <button class="btn ghost sm" id="calNext">▶</button>
+      </div>
+      <div class="cal-grid" id="calDow"></div>
+      <div class="cal-grid" id="calGrid" style="margin-top:4px;"></div>
+      <div class="legend" id="calLegend"></div>
+    </div>
+  </section>
+
+  <!-- HORARIO -->
+  <section class="view" id="view-horario">
+    <div class="panel">
+      <h2>Plantillas de <span class="em">horario</span></h2>
+      <p class="muted" style="margin-top:-6px;">Como tu horario rola cada semana, guarda una plantilla distinta por cada variante y activa la que te toque.</p>
+      <div class="tpl-bar">
+        <select id="tplSelect" style="max-width:220px;"></select>
+        <button class="btn sm" id="tplNew">+ Nueva plantilla</button>
+        <button class="btn sm ghost" id="tplRename">Renombrar</button>
+        <button class="btn sm red" id="tplDelete">Eliminar</button>
+      </div>
+      <div class="row" style="margin-bottom:12px;">
+        <button class="btn sm" id="importExcelBtn" style="flex:0 0 auto;">📥 Importar mi horario semanal (Excel)</button>
+      </div>
+      <div id="weekGridWrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div>
+      <button class="btn sm" id="addBlockBtn" style="margin-top:12px;">+ Añadir bloque a esta plantilla</button>
+      <div class="sched-legend" id="schedLegend"></div>
+    </div>
+  </section>
+
+  <!-- GRUPOS -->
+  <section class="view" id="view-grupos">
+    <div class="panel">
+      <h2>Mis <span class="em">grupos</span></h2>
+      <p class="muted" style="margin-top:-6px;">Cada grupo guarda sus temas de clase, exámenes y entregas.</p>
+      <div class="field row">
+        <input type="text" id="newGroupName" placeholder="Nombre del grupo (ej. 3°A Matemáticas)">
+        <input type="color" id="newGroupColor" value="#1c3f9e" style="flex:0 0 54px;padding:2px;">
+        <button class="btn red sm" id="addGroupBtn" style="flex:0 0 auto;">+ Grupo</button>
+      </div>
+    </div>
+    <div id="groupsWrap"></div>
+  </section>
+
+  <!-- PENDIENTES -->
+  <section class="view" id="view-pend">
+    <div class="panel">
+      <h2>Lista de <span class="em">pendientes</span></h2>
+      <div class="field row">
+        <input type="text" id="todoText" placeholder="¿Qué necesitas hacer?">
+        <input type="date" id="todoDate" style="flex:0 0 150px;">
+        <button class="btn red sm" id="addTodoBtn" style="flex:0 0 auto;">+ Añadir</button>
+      </div>
+      <div class="row" style="margin:10px 0;">
+        <button class="btn ghost sm" id="filterAll">Todos</button>
+        <button class="btn ghost sm" id="filterPending">Pendientes</button>
+        <button class="btn ghost sm" id="filterDone">Hechos</button>
+      </div>
+      <div id="todoFullList"></div>
+    </div>
+  </section>
+
+  <footer class="credit">Datos guardados solo en este dispositivo (localStorage) · hecho para uso personal</footer>
+</div>
+
+<!-- MODAL genérico -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<script>
+/* ===== CONFIGURACIÓN DE SINCRONIZACIÓN (Firebase) — pega aquí tus datos ===== */
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC5kGcCOGEW_IxkyJNscy9dsWjIrHNGwyU",
+  authDomain: "parkertareas.firebaseapp.com",
+  projectId: "parkertareas",
+  appId: "1:184849982933:web:83b7534b4270a31163895c"
+};
+</script>
+<script>
+/* ================= DATA ================= */
+const STORAGE_KEY = 'trepamuros-data-v1';
+const DOW = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const DOW_FULL = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+const TYPE_META = {
+  tema:               {label:'Tema',                 color:'#1c3f9e'},
+  actividad:          {label:'Actividad',             color:'#16a085'},
+  examen:             {label:'Examen',                color:'#111111'},
+  evento:             {label:'Evento',                color:'#e67e22'},
+  proyecto:           {label:'Proyecto',              color:'#8e44ad'},
+  entrega:            {label:'Entrega',                color:'#2fae66'},
+  dia_libre:          {label:'Día libre',             color:'#7f8c8d'},
+  temporada_examenes: {label:'Temporada de exámenes', color:'#8c0f1c'},
+  otro:               {label:'Otro',                  color:'#999999'},
+  tarea:              {label:'Tarea',                 color:'#c0392b'},
+};
+const SCOPE_CATEGORIES = {
+  trabajo: ['tema','actividad','examen','evento','proyecto'],
+  escuela: ['entrega','dia_libre','temporada_examenes','evento'],
+  personal:['actividad','entrega','evento','otro'],
+  otro:    ['otro','evento'],
+};
+const STATUS = {pendiente:{label:'Pendiente',icon:'○',color:'#8a8a8a'}, proceso:{label:'En proceso',icon:'◐',color:'#e67e22'}, hecho:{label:'Hecho',icon:'●',color:'#2fae66'}};
+function nextStatus(x){ return (!x||x==='pendiente')?'proceso':x==='proceso'?'hecho':'pendiente'; }
+function stOf(o){ return o.status || (o.done?'hecho':'pendiente'); }
+// Calendario escolar UTL 2026-2027 transcrito de la imagen: [inicio, fin, título, tipo]
+const UTL_EVENTS = [["2026-09-01","2026-09-04","Inscripciones y reinscripciones","evento"],["2026-09-01","2026-09-01","Inicio de cuatrimestre","evento"],["2026-09-07","2026-09-15","Semana de inducción","evento"],["2026-09-16","2026-09-16","Descanso obligatorio","dia_libre"],["2026-09-25","2026-09-25","Inicio venta de fichas nuevo ingreso","evento"],["2026-09-28","2026-09-28","Inicio captura de calificaciones","evento"],["2026-10-07","2026-10-07","Límite captura de calificaciones","evento"],["2026-10-22","2026-10-22","Día inhábil (por costumbre)","dia_libre"],["2026-11-02","2026-11-02","Suspensión de labores","dia_libre"],["2026-11-03","2026-11-03","Inicio captura de calificaciones","evento"],["2026-11-11","2026-11-11","Límite captura de calificaciones","evento"],["2026-11-16","2026-11-16","Descanso obligatorio","dia_libre"],["2026-11-17","2026-11-20","Captura de extraordinarios (plan anterior)","temporada_examenes"],["2026-11-23","2026-11-23","Último día para bajas voluntarias","evento"],["2026-11-27","2026-11-27","Informe anual de actividades","evento"],["2026-11-30","2026-11-30","Inicio captura de calificaciones","evento"],["2026-12-09","2026-12-09","Límite captura de calificaciones","evento"],["2026-12-10","2026-12-11","Exámenes de recuperación / extraordinario","temporada_examenes"],["2026-12-12","2026-12-12","Fin de cuatrimestre","evento"],["2026-12-14","2026-12-18","Capacitación docente","evento"],["2026-12-21","2026-12-21","Último día de labores","dia_libre"],["2026-12-22","2027-01-06","Período vacacional de invierno","dia_libre"],["2027-01-07","2027-01-07","Inicio de cuatrimestre","evento"],["2027-01-07","2027-01-08","Inscripciones y reinscripciones","evento"],["2027-01-11","2027-01-15","Semana de inducción","evento"],["2027-01-20","2027-01-20","Día del estudiante universitario UTL","evento"],["2027-01-27","2027-01-27","Inicio venta de fichas nuevo ingreso","evento"],["2027-02-01","2027-02-01","Descanso obligatorio","dia_libre"],["2027-02-02","2027-02-02","Inicio captura de calificaciones","evento"],["2027-02-10","2027-02-10","Límite captura de calificaciones","evento"],["2027-03-08","2027-03-08","Inicio captura de calificaciones","evento"],["2027-03-15","2027-03-15","Descanso obligatorio","dia_libre"],["2027-03-17","2027-03-17","Límite captura de calificaciones","evento"],["2027-03-22","2027-03-27","Suspensión de labores (Semana Santa)","dia_libre"],["2027-03-29","2027-04-03","Captura de extraordinarios (plan anterior)","temporada_examenes"],["2027-04-05","2027-04-05","Último día para bajas voluntarias","evento"],["2027-04-12","2027-04-12","Inicio captura de calificaciones","evento"],["2027-04-21","2027-04-21","Límite captura de calificaciones","evento"],["2027-04-22","2027-04-23","Exámenes de recuperación / extraordinario","temporada_examenes"],["2027-04-24","2027-04-24","Fin de cuatrimestre","evento"],["2027-05-01","2027-05-01","Descanso obligatorio","dia_libre"],["2027-05-03","2027-05-03","Inicio de cuatrimestre","evento"],["2027-05-03","2027-05-07","Inscripciones y reinscripciones","evento"],["2027-05-10","2027-05-10","Día inhábil madres UTL","dia_libre"],["2027-05-11","2027-05-13","Semana de inducción","evento"],["2027-05-14","2027-05-14","Día del maestro y la maestra","evento"],["2027-05-31","2027-05-31","Inicio captura de calificaciones","evento"],["2027-06-09","2027-06-09","Límite captura de calificaciones","evento"],["2027-07-04","2027-07-04","Día inhábil (por costumbre)","dia_libre"],["2027-07-05","2027-07-05","Inicio captura de calificaciones","evento"],["2027-07-14","2027-07-14","Límite captura de calificaciones","evento"],["2027-07-16","2027-07-16","Día del Personal Universitario","evento"],["2027-07-19","2027-07-30","Período vacacional de verano","dia_libre"],["2027-08-02","2027-08-06","Captura de extraordinarios (plan anterior)","temporada_examenes"],["2027-08-09","2027-08-09","Último día para bajas voluntarias","evento"],["2027-08-16","2027-08-16","Inicio captura de calificaciones","evento"],["2027-08-25","2027-08-25","Límite captura de calificaciones","evento"],["2027-08-26","2027-08-26","Exámenes de recuperación / extraordinario","temporada_examenes"],["2027-08-27","2027-08-27","Aniversario Campus León","evento"],["2027-08-28","2027-08-28","Fin de cuatrimestre","evento"],["2027-08-30","2027-08-31","Semana de inducción","evento"]];
+
+// Categorías de actividades para los bloques del horario semanal (más allá de solo trabajo/universidad)
+const CATEGORY_META = {
+  trabajo:     {label:'Trabajo / Prepa',   color:'#d61f2c', text:'#fff'},
+  universidad: {label:'Universidad',        color:'#1c3f9e', text:'#fff'},
+  ejercicio:   {label:'Ejercicio',          color:'#e67e22', text:'#fff'},
+  comida:      {label:'Comida',             color:'#16a085', text:'#fff'},
+  estudio:     {label:'Tarea / Estudio',    color:'#8e44ad', text:'#fff'},
+  descanso:    {label:'Descanso',           color:'#27ae60', text:'#fff'},
+  libre:       {label:'Libre',              color:'#95a5a6', text:'#fff'},
+  jugar:       {label:'Jugar',              color:'#00b8d9', text:'#05060d'},
+  dormir:      {label:'Dormir',             color:'#2c3e50', text:'#fff'},
+  higiene:     {label:'Baño / Higiene',     color:'#3498db', text:'#fff'},
+  hogar:       {label:'Casa / Hogar',       color:'#a0522d', text:'#fff'},
+  traslado:    {label:'Traslado',           color:'#f1c40f', text:'#05060d'},
+  otro_act:    {label:'Otro',               color:'#7f8c8d', text:'#fff'},
+};
+
+// Horario importado del archivo "Horario_Semanal_SpiderMan_Simple.xlsx" (bloques ya fusionados por actividad)
+const EXCEL_SCHEDULE_BLOCKS = [{"day": 0, "start": "08:00", "end": "08:30", "title": "Libre", "type": "libre"}, {"day": 0, "start": "09:00", "end": "09:30", "title": "Camino a la Prepa", "type": "traslado"}, {"day": 0, "start": "09:30", "end": "10:00", "title": "Preparatoria / Trabajo", "type": "trabajo"}, {"day": 0, "start": "11:00", "end": "11:30", "title": "Regreso a casa", "type": "traslado"}, {"day": 0, "start": "11:30", "end": "12:00", "title": "Comida", "type": "comida"}, {"day": 0, "start": "12:00", "end": "14:30", "title": "Ejercicio", "type": "ejercicio"}, {"day": 0, "start": "14:30", "end": "15:00", "title": "Baño", "type": "higiene"}, {"day": 0, "start": "15:00", "end": "16:30", "title": "Libre", "type": "libre"}, {"day": 0, "start": "16:30", "end": "17:00", "title": "Camino a la universidad", "type": "traslado"}, {"day": 0, "start": "17:00", "end": "17:30", "title": "Universidad", "type": "universidad"}, {"day": 0, "start": "21:00", "end": "21:30", "title": "Regreso a casa", "type": "traslado"}, {"day": 0, "start": "21:30", "end": "23:00", "title": "Tarea / Estudio", "type": "estudio"}, {"day": 0, "start": "23:00", "end": "23:59", "title": "Jugar", "type": "jugar"}, {"day": 1, "start": "08:00", "end": "08:30", "title": "Libre", "type": "libre"}, {"day": 1, "start": "08:30", "end": "09:30", "title": "Ejercicio", "type": "ejercicio"}, {"day": 1, "start": "09:30", "end": "10:00", "title": "Baño", "type": "higiene"}, {"day": 1, "start": "10:00", "end": "10:30", "title": "Camino a la Prepa", "type": "traslado"}, {"day": 1, "start": "10:30", "end": "11:00", "title": "Preparatoria / Trabajo", "type": "trabajo"}, {"day": 1, "start": "12:00", "end": "12:30", "title": "Preparatoria / Trabajo", "type": "trabajo"}, {"day": 1, "start": "14:00", "end": "14:30", "title": "Regreso a casa", "type": "traslado"}, {"day": 1, "start": "14:30", "end": "15:00", "title": "Comida", "type": "comida"}, {"day": 1, "start": "15:00", "end": "16:00", "title": "Tarea / Estudio", "type": "estudio"}, {"day": 1, "start": "16:00", "end": "16:30", "title": "Libre", "type": "libre"}, {"day": 1, "start": "16:30", "end": "17:00", "title": "Camino a la universidad", "type": "traslado"}, {"day": 1, "start": "17:00", "end": "17:30", "title": "Universidad", "type": "universidad"}, {"day": 1, "start": "21:00", "end": "21:30", "title": "Regreso a casa", "type": "traslado"}, {"day": 1, "start": "21:30", "end": "22:30", "title": "Tarea / Estudio", "type": "estudio"}, {"day": 1, "start": "22:30", "end": "23:59", "title": "Jugar", "type": "jugar"}, {"day": 2, "start": "08:00", "end": "10:00", "title": "Libre", "type": "libre"}, {"day": 2, "start": "10:00", "end": "11:00", "title": "Comida", "type": "comida"}, {"day": 2, "start": "11:00", "end": "16:00", "title": "Tarea / Estudio", "type": "estudio"}, {"day": 2, "start": "16:00", "end": "17:30", "title": "Jugar", "type": "jugar"}, {"day": 2, "start": "21:00", "end": "23:00", "title": "Ejercicio", "type": "ejercicio"}, {"day": 2, "start": "23:00", "end": "23:30", "title": "Baño", "type": "higiene"}, {"day": 2, "start": "23:30", "end": "23:59", "title": "Descanso", "type": "descanso"}, {"day": 3, "start": "08:00", "end": "08:30", "title": "Libre", "type": "libre"}, {"day": 3, "start": "08:30", "end": "09:30", "title": "Ejercicio", "type": "ejercicio"}, {"day": 3, "start": "09:30", "end": "10:00", "title": "Baño", "type": "higiene"}, {"day": 3, "start": "10:00", "end": "10:30", "title": "Libre", "type": "libre"}, {"day": 3, "start": "10:30", "end": "11:00", "title": "Camino a la Prepa", "type": "traslado"}, {"day": 3, "start": "11:00", "end": "11:30", "title": "Preparatoria / Trabajo", "type": "trabajo"}, {"day": 3, "start": "12:30", "end": "13:00", "title": "Regreso a casa", "type": "traslado"}, {"day": 3, "start": "13:00", "end": "13:30", "title": "Descanso", "type": "descanso"}, {"day": 3, "start": "13:30", "end": "14:00", "title": "Comida", "type": "comida"}, {"day": 3, "start": "14:00", "end": "16:00", "title": "Tarea / Estudio", "type": "estudio"}, {"day": 3, "start": "16:00", "end": "16:30", "title": "Libre", "type": "libre"}, {"day": 3, "start": "16:30", "end": "17:00", "title": "Camino a la universidad", "type": "traslado"}, {"day": 3, "start": "17:00", "end": "17:30", "title": "Universidad", "type": "universidad"}, {"day": 3, "start": "21:00", "end": "21:30", "title": "Regreso a casa", "type": "traslado"}, {"day": 3, "start": "21:30", "end": "22:30", "title": "Tarea / Estudio", "type": "estudio"}, {"day": 3, "start": "22:30", "end": "23:59", "title": "Jugar", "type": "jugar"}, {"day": 4, "start": "08:00", "end": "10:30", "title": "Libre", "type": "libre"}, {"day": 4, "start": "10:30", "end": "11:00", "title": "Camino a la Prepa", "type": "traslado"}, {"day": 4, "start": "11:00", "end": "11:30", "title": "Preparatoria / Trabajo", "type": "trabajo"}, {"day": 4, "start": "14:30", "end": "15:00", "title": "Regreso a casa", "type": "traslado"}, {"day": 4, "start": "15:00", "end": "15:30", "title": "Comida", "type": "comida"}, {"day": 4, "start": "15:30", "end": "16:30", "title": "Libre", "type": "libre"}, {"day": 4, "start": "16:30", "end": "17:00", "title": "Camino a la universidad", "type": "traslado"}, {"day": 4, "start": "17:00", "end": "17:30", "title": "Universidad", "type": "universidad"}, {"day": 4, "start": "21:00", "end": "21:30", "title": "Regreso a casa", "type": "traslado"}, {"day": 4, "start": "21:30", "end": "23:00", "title": "Ejercicio", "type": "ejercicio"}, {"day": 4, "start": "23:00", "end": "23:30", "title": "Baño", "type": "higiene"}, {"day": 4, "start": "23:30", "end": "23:59", "title": "Descanso", "type": "descanso"}, {"day": 5, "start": "08:00", "end": "08:30", "title": "Universidad", "type": "universidad"}, {"day": 5, "start": "11:30", "end": "12:00", "title": "Regreso a casa", "type": "traslado"}, {"day": 5, "start": "12:00", "end": "12:30", "title": "Descanso", "type": "descanso"}, {"day": 5, "start": "12:30", "end": "13:30", "title": "Limpiar habitación", "type": "hogar"}, {"day": 5, "start": "13:30", "end": "18:30", "title": "Tarea / Estudio", "type": "estudio"}, {"day": 5, "start": "18:30", "end": "22:00", "title": "Libre", "type": "libre"}, {"day": 5, "start": "22:00", "end": "23:59", "title": "Jugar", "type": "jugar"}, {"day": 6, "start": "08:00", "end": "11:00", "title": "Libre", "type": "libre"}, {"day": 6, "start": "11:00", "end": "11:30", "title": "Lavar trastes", "type": "hogar"}, {"day": 6, "start": "11:30", "end": "12:30", "title": "Libre", "type": "libre"}, {"day": 6, "start": "12:30", "end": "15:30", "title": "Arreglar moto", "type": "hogar"}, {"day": 6, "start": "15:30", "end": "19:30", "title": "Libre", "type": "libre"}, {"day": 6, "start": "19:30", "end": "21:30", "title": "Tarea / Estudio", "type": "estudio"}, {"day": 6, "start": "21:30", "end": "22:30", "title": "Ejercicio", "type": "ejercicio"}, {"day": 6, "start": "22:30", "end": "23:00", "title": "Baño", "type": "higiene"}, {"day": 6, "start": "23:00", "end": "23:59", "title": "Revisar horario", "type": "otro"}];
+
+function uid(){ return 'id' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function todayISO(){ const d=new Date(); return isoDate(d); }
+function isoDate(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function fmtDateHuman(iso){
+  const d = new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('es-MX',{weekday:'short', day:'numeric', month:'short'});
+}
+
+let data = loadData();
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.error('Error leyendo datos', e); }
+  const firstTplId = uid();
+  return {
+    events: [],
+    groups: [],
+    todos: [],
+    scheduleTemplates: [{id:firstTplId, name:'Semana normal', blocks:[]}],
+    activeTemplateId: firstTplId,
+  };
+}
+function save(){
+  data._updatedAt = Date.now();
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+  catch(e){ alert('No se pudo guardar (¿almacenamiento lleno o bloqueado?).'); console.error(e); }
+  if(window.cloudPush) window.cloudPush(data);
+}
+
+/* ================= NAV ================= */
+const views = document.querySelectorAll('.view');
+document.getElementById('tabs').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-view]');
+  if(!btn) return;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  views.forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  if(btn.dataset.view==='cal') renderCalendar();
+  if(btn.dataset.view==='horario') renderSchedule();
+});
+
+document.getElementById('todayChip').textContent =
+  new Date().toLocaleDateString('es-MX',{weekday:'long', day:'numeric', month:'long'});
+
+/* ================= MODAL helper ================= */
+const overlay = document.getElementById('overlay');
+const modalBody = document.getElementById('modalBody');
+function openModal(html){
+  modalBody.innerHTML = `<button class="close-x" id="modalClose">&times;</button>` + html;
+  overlay.classList.add('show');
+  document.getElementById('modalClose').onclick = closeModal;
+}
+function closeModal(){ overlay.classList.remove('show'); modalBody.innerHTML=''; }
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+
+/* ================= HOY (dashboard) ================= */
+function renderHoy(){
+  const iso = todayISO();
+  const dow = (new Date(iso+'T00:00:00').getDay()+6)%7; // 0=lun
+  const tpl = data.scheduleTemplates.find(t=>t.id===data.activeTemplateId) || data.scheduleTemplates[0];
+  const todays = (tpl?.blocks||[]).filter(b=>b.day===dow).sort((a,b)=>a.start.localeCompare(b.start));
+  const schedWrap = document.getElementById('hoySchedule');
+  schedWrap.innerHTML = todays.length ? todays.map(b=>`
+    <div class="item">
+      <span class="dot" style="background:${(CATEGORY_META[b.type]||CATEGORY_META.otro_act).color}"></span>
+      <span class="time">${b.start}–${b.end}</span>
+      <span class="txt">${esc(b.title)}${b.location?`<small>${esc(b.location)}</small>`:''}</span>
+    </div>`).join('') : `<div class="empty">Sin bloques hoy en «${esc(tpl?.name||'')}». Revisa la pestaña Horario.</div>`;
+
+  const horizon = addDays(iso,7);
+  const upcoming = data.events
+    .filter(ev => ev.date <= horizon && (ev.endDate||ev.date) >= iso)
+    .sort((a,b)=> a.date.localeCompare(b.date));
+  document.getElementById('hoyAgenda').innerHTML = upcoming.length ? upcoming.map(ev=>{
+    const extra = groupNameOf(ev.groupId) || ev.materia || '';
+    const rng = ev.endDate && ev.endDate!==ev.date ? fmtDateHuman(ev.date)+'–'+fmtDateHuman(ev.endDate) : fmtDateHuman(ev.date);
+    return `<div class="item">${stBtn(ev)}<span class="dot" style="background:${TYPE_META[ev.type].color}"></span>
+      <span class="time">${rng}</span>
+      <span class="txt ${stOf(ev)==='hecho'?'done':''}">${esc(ev.title)}${extra?`<small>${esc(extra)}</small>`:''}</span></div>`;
+  }).join('') : `<div class="empty">No hay nada en los próximos 7 días 🎉</div>`;
+
+  renderHoyTodos();
+}
+function addDays(iso, n){
+  const d = new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return isoDate(d);
+}
+function groupNameOf(id){ return data.groups.find(g=>g.id===id)?.name || ''; }
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderHoyTodos(){
+  const iso = todayISO();
+  const list = data.todos.filter(t=>t.date===iso).sort((a,b)=>Number(a.done)-Number(b.done));
+  const wrap = document.getElementById('hoyTodos');
+  wrap.innerHTML = list.length ? list.map(t=>`
+    <div class="todo-row">
+      ${todoBtn(t)}
+      <span class="${t.done?'done':''}" data-todoedit="${t.id}" title="Toca para editar">${esc(t.text)}</span>
+      <button data-del="${t.id}" title="Eliminar">✕</button>
+    </div>`).join('') : `<div class="empty">Sin pendientes para hoy.</div>`;
+  wrap.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange = ()=>{ toggleTodo(cb.dataset.id); };
+  });
+  wrap.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick = ()=>{ deleteTodo(b.dataset.del); };
+  });
+}
+document.getElementById('quickTodoBtn').onclick = ()=>{
+  const inp = document.getElementById('quickTodo');
+  if(!inp.value.trim()) return;
+  data.todos.push({id:uid(), text:inp.value.trim(), date:todayISO(), done:false});
+  inp.value='';
+  save(); renderHoy(); renderTodoFullList();
+};
+document.getElementById('quickTodo').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('quickTodoBtn').click(); });
+
+/* ================= CALENDARIO ================= */
+let calCursor = new Date(); calCursor.setDate(1);
+document.getElementById('calPrev').onclick = ()=>{ calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); };
+document.getElementById('calNext').onclick = ()=>{ calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); };
+
+function eventDateList(ev){
+  const out=[]; let d=new Date(ev.date+'T00:00:00'); const end=new Date((ev.endDate||ev.date)+'T00:00:00'); let g=0;
+  while(d<=end && g++<400){ out.push(isoDate(d)); d.setDate(d.getDate()+1); }
+  return out;
+}
+function stBtn(ev){
+  if(ev.source==='utl') return '';
+  const st=STATUS[stOf(ev)];
+  return `<button class="stbtn" data-evst="${ev.id}" style="color:${st.color}" title="${st.label} (toca para cambiar)">${st.icon}</button>`;
+}
+function renderCalendar(){
+  document.getElementById('calDow').innerHTML = DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  document.getElementById('calLabel').textContent = calCursor.toLocaleDateString('es-MX',{month:'long', year:'numeric'});
+  const year=calCursor.getFullYear(), month=calCursor.getMonth();
+  const gridStart=new Date(year, month, 1-((new Date(year,month,1).getDay()+6)%7));
+  const by={};
+  data.events.forEach(ev=>eventDateList(ev).forEach(d=>{(by[d]=by[d]||[]).push(ev);}));
+  const iso=todayISO(); let cells='';
+  for(let i=0;i<42;i++){
+    const d=new Date(gridStart); d.setDate(gridStart.getDate()+i);
+    const c=isoDate(d), evs=by[c]||[];
+    const dots=evs.slice(0,6).map(ev=>`<span class="dot" style="background:${TYPE_META[ev.type].color};${stOf(ev)==='hecho'?'opacity:.35':''}"></span>`).join('');
+    cells+=`<div class="cal-cell ${d.getMonth()!==month?'out':''} ${c===iso?'today':''}" data-date="${c}"><span>${d.getDate()}</span><div class="dots">${dots}</div></div>`;
+  }
+  document.getElementById('calGrid').innerHTML=cells;
+  document.querySelectorAll('.cal-cell').forEach(c=>{ c.onclick=()=>openDayModal(c.dataset.date); });
+  document.getElementById('calLegend').innerHTML = Object.entries(TYPE_META).filter(([k])=>k!=='tarea').map(([k,v])=>`<span><i class="dot" style="background:${v.color}"></i>${esc(v.label)}</span>`).join('');
+}
+
+let currentDay=null;
+function openDayModal(iso){
+  currentDay=iso;
+  const evs=data.events.filter(e=>eventDateList(e).includes(iso)).sort((a,b)=>a.type.localeCompare(b.type));
+  const rows=evs.map(ev=>{
+    const extra=groupNameOf(ev.groupId)||ev.materia||'';
+    const rng=ev.endDate&&ev.endDate!==ev.date?` <span class="muted">(${fmtDateHuman(ev.date)} – ${fmtDateHuman(ev.endDate)})</span>`:'';
+    return `<div class="mini-list"><div class="row-item">${stBtn(ev)}
+      <span class="dot" style="background:${TYPE_META[ev.type].color}"></span>
+      <span style="flex:1;" class="${stOf(ev)==='hecho'?'done':''}">${esc(TYPE_META[ev.type].label)}: ${esc(ev.title)}${extra?` <span class="muted">(${esc(extra)})</span>`:''}${rng}</span>
+      <button data-evedit="${ev.id}" title="Editar">✎</button><button data-del-event="${ev.id}" title="Borrar">✕</button></div></div>`;
+  }).join('');
+  openModal(`
+    <h3>${fmtDateHuman(iso)}</h3>
+    ${rows||'<p class="muted">Sin eventos este día.</p>'}
+    <hr style="border:none;border-top:2px dashed rgba(0,0,0,.15);margin:14px 0;">
+    <div class="field"><label>Título</label><input id="newEvTitle" placeholder="Ej. Entrega de reporte"></div>
+    <div class="field"><label>Ámbito</label><select id="newEvScope">
+      <option value="trabajo">Trabajo (Prepa)</option><option value="escuela">Escuela (Universidad)</option>
+      <option value="personal">Personal</option><option value="otro">General</option></select></div>
+    <div class="field" id="newEvGroupWrap"><label>Grupo / grado</label><select id="newEvGroup"><option value="">—</option>
+      ${data.groups.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('')}</select></div>
+    <div class="field" id="newEvMateriaWrap" style="display:none;"><label>Materia (opcional)</label><input id="newEvMateria" placeholder="Ej. Cálculo I"></div>
+    <div class="field"><label>Categoría</label><select id="newEvType"></select></div>
+    <div class="row"><div class="field"><label>Fecha inicio</label><input type="date" id="newEvDate" value="${iso}"></div>
+      <div class="field"><label>Fecha fin (opcional)</label><input type="date" id="newEvEndDate"></div></div>
+    <div class="modal-actions"><button class="btn ghost" id="cancelEv">Cerrar</button><button class="btn red" id="saveEv">Guardar</button></div>`);
+  const scopeSel=document.getElementById('newEvScope'), typeSel=document.getElementById('newEvType');
+  function refresh(){
+    const sc=scopeSel.value;
+    typeSel.innerHTML=SCOPE_CATEGORIES[sc].map(k=>`<option value="${k}">${esc(TYPE_META[k].label)}</option>`).join('');
+    document.getElementById('newEvGroupWrap').style.display=sc==='trabajo'?'':'none';
+    document.getElementById('newEvMateriaWrap').style.display=sc==='escuela'?'':'none';
+  }
+  scopeSel.onchange=refresh; refresh();
+  document.getElementById('cancelEv').onclick=closeModal;
+  document.getElementById('saveEv').onclick=()=>{
+    const title=document.getElementById('newEvTitle').value.trim(); if(!title) return;
+    const sd=document.getElementById('newEvDate').value||iso, ed=document.getElementById('newEvEndDate').value||sd, sc=scopeSel.value;
+    data.events.push({id:uid(), title, date:sd, endDate:ed<sd?sd:ed, type:typeSel.value, scope:sc,
+      groupId:sc==='trabajo'?(document.getElementById('newEvGroup').value||null):null,
+      materia:sc==='escuela'?document.getElementById('newEvMateria').value.trim():'', status:'pendiente', notes:''});
+    save(); closeModal(); renderAll();
+  };
+  modalBody.querySelectorAll('[data-del-event]').forEach(b=>{
+    b.onclick = ()=>{
+      data.events = data.events.filter(e=>e.id!==b.dataset.delEvent);
+      save(); openDayModal(iso); renderCalendar(); renderHoy();
+    };
+  });
+}
+
+/* ================= HORARIO ================= */
+function currentTpl(){ return data.scheduleTemplates.find(t=>t.id===data.activeTemplateId) || data.scheduleTemplates[0]; }
+
+function renderSchedule(){
+  const sel = document.getElementById('tplSelect');
+  sel.innerHTML = data.scheduleTemplates.map(t=>`<option value="${t.id}" ${t.id===data.activeTemplateId?'selected':''}>${esc(t.name)}</option>`).join('');
+
+  const tpl = currentTpl();
+  const startHour = 7, endHour = 24;
+  const rowH = 60; // px por hora
+  const totalH = (endHour - startHour) * rowH;
+
+  let hourLabels = '';
+  for(let h=startHour; h<=endHour; h++){
+    hourLabels += `<div class="hour-label" style="top:${(h-startHour)*rowH}px">${h}:00</div>`;
+  }
+  let cols = '';
+  for(let day=0; day<7; day++){
+    cols += `<div class="week-col" data-day="${day}" style="height:${totalH}px"></div>`;
+  }
+  const html = `
+    <div class="week-wrap" style="--rowh:${rowH}px;">
+      <div class="week-header">${`<div></div>` + DOW.map(d=>`<div class="h">${d}</div>`).join('')}</div>
+      <div class="week-body" style="height:${totalH}px">
+        <div class="hour-labels" style="height:${totalH}px">${hourLabels}</div>
+        ${cols}
+      </div>
+    </div>`;
+  document.getElementById('weekGridWrap').innerHTML = html;
+
+  (tpl.blocks||[]).forEach(b=>{
+    const startH = parseInt(b.start.split(':')[0]), startM = parseInt(b.start.split(':')[1]);
+    const endH = parseInt(b.end.split(':')[0]), endM = parseInt(b.end.split(':')[1]);
+    const col = document.querySelector(`.week-col[data-day="${b.day}"]`);
+    if(!col) return;
+    const startMinFromTop = (startH - startHour) * 60 + startM;
+    const endMinFromTop = (endH - startHour) * 60 + endM;
+    const top = Math.max(0, (startMinFromTop/60) * rowH);
+    const height = Math.max(16, ((endMinFromTop - startMinFromTop)/60) * rowH);
+    const block = document.createElement('div');
+    block.className = 'block';
+    const meta = CATEGORY_META[b.type] || CATEGORY_META.otro_act;
+    block.style.background = meta.color;
+    block.style.color = meta.text;
+    block.style.top = top+'px';
+    block.style.height = height+'px';
+    if(height < 26){
+      block.classList.add('short');
+      block.innerHTML = `<span class="bt">${esc(b.title)}</span><span class="btime">${b.start}–${b.end}</span>`;
+    }else{
+      block.innerHTML = `${esc(b.title)}<span class="btime">${b.start}–${b.end}</span>`;
+    }
+    block.title = `${b.start}-${b.end} ${b.location||''}`;
+    block.onclick = (e)=>{ e.stopPropagation(); openBlockModal(b.id); };
+    col.appendChild(block);
+  });
+
+  const usedTypes = [...new Set((tpl.blocks||[]).map(b=>b.type))];
+  document.getElementById('schedLegend').innerHTML = usedTypes.map(t=>{
+    const m = CATEGORY_META[t] || CATEGORY_META.otro_act;
+    return `<span><i class="dot" style="background:${m.color}"></i>${esc(m.label)}</span>`;
+  }).join('');
+}
+
+document.getElementById('tplSelect').onchange = (e)=>{
+  data.activeTemplateId = e.target.value; save(); renderSchedule(); renderHoy();
+};
+document.getElementById('tplNew').onclick = ()=>{
+  const name = prompt('Nombre de la nueva plantilla (ej. "Semana A", "Vacaciones")');
+  if(!name) return;
+  const t = {id:uid(), name, blocks:[]};
+  data.scheduleTemplates.push(t);
+  data.activeTemplateId = t.id;
+  save(); renderSchedule(); renderHoy();
+};
+document.getElementById('tplRename').onclick = ()=>{
+  const tpl = currentTpl();
+  const name = prompt('Nuevo nombre:', tpl.name);
+  if(!name) return;
+  tpl.name = name; save(); renderSchedule();
+};
+document.getElementById('tplDelete').onclick = ()=>{
+  if(data.scheduleTemplates.length<=1){ alert('Debe quedar al menos una plantilla.'); return; }
+  if(!confirm('¿Eliminar esta plantilla y todos sus bloques?')) return;
+  data.scheduleTemplates = data.scheduleTemplates.filter(t=>t.id!==data.activeTemplateId);
+  data.activeTemplateId = data.scheduleTemplates[0].id;
+  save(); renderSchedule(); renderHoy();
+};
+
+document.getElementById('addBlockBtn').onclick = ()=> openBlockModal(null);
+
+document.getElementById('importExcelBtn').onclick = ()=>{
+  const overwrite = currentTpl().blocks.length
+    ? confirm('Esto creará una nueva plantilla "Mi rutina (Excel)" con tu horario semanal completo. ¿Continuar?')
+    : true;
+  if(!overwrite) return;
+  let tpl = data.scheduleTemplates.find(t=>t.name==='Mi rutina (Excel)');
+  if(!tpl){
+    tpl = {id:uid(), name:'Mi rutina (Excel)', blocks:[]};
+    data.scheduleTemplates.push(tpl);
+  }
+  tpl.blocks = EXCEL_SCHEDULE_BLOCKS.map(b=>({id:uid(), day:b.day, start:b.start, end:b.end, title:b.title, type:b.type, location:''}));
+  data.activeTemplateId = tpl.id;
+  save();
+  renderSchedule(); renderHoy();
+  alert('Tu horario del Excel ya está cargado en la plantilla "Mi rutina (Excel)". Puedes editar cualquier bloque tocándolo, o crear otras plantillas para tus semanas distintas.');
+};
+
+function openBlockModal(blockId){
+  const tpl = currentTpl();
+  const b = blockId ? tpl.blocks.find(x=>x.id===blockId) : {id:null, day:0, start:'08:00', end:'09:00', title:'', type:'trabajo', location:''};
+  openModal(`
+    <h3>${blockId?'Editar bloque':'Nuevo bloque'}</h3>
+    <div class="field"><label>Título</label><input id="bTitle" value="${esc(b.title)}" placeholder="Ej. Clase 3°B, Cálculo I..."></div>
+    <div class="row">
+      <div class="field"><label>Día</label>
+        <select id="bDay">${DOW_FULL.map((d,i)=>`<option value="${i}" ${i===b.day?'selected':''}>${d}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Tipo</label>
+        <select id="bType">
+          ${Object.entries(CATEGORY_META).map(([k,v])=>`<option value="${k}" ${b.type===k?'selected':''}>${v.label}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Inicio</label><input type="time" id="bStart" value="${b.start}"></div>
+      <div class="field"><label>Fin</label><input type="time" id="bEnd" value="${b.end}"></div>
+    </div>
+    <div class="field"><label>Lugar (opcional)</label><input id="bLoc" value="${esc(b.location||'')}" placeholder="Salón, edificio..."></div>
+    <div class="modal-actions">
+      ${blockId?'<button class="btn red" id="delBlock">Eliminar</button>':''}
+      <button class="btn ghost" id="cancelBlock">Cancelar</button>
+      <button class="btn" id="saveBlock">Guardar</button>
+    </div>
+  `);
+  document.getElementById('cancelBlock').onclick = closeModal;
+  if(blockId){
+    document.getElementById('delBlock').onclick = ()=>{
+      tpl.blocks = tpl.blocks.filter(x=>x.id!==blockId);
+      save(); closeModal(); renderSchedule(); renderHoy();
+    };
+  }
+  document.getElementById('saveBlock').onclick = ()=>{
+    const title = document.getElementById('bTitle').value.trim();
+    if(!title) return;
+    const payload = {
+      title,
+      day: parseInt(document.getElementById('bDay').value),
+      type: document.getElementById('bType').value,
+      start: document.getElementById('bStart').value,
+      end: document.getElementById('bEnd').value,
+      location: document.getElementById('bLoc').value.trim(),
+    };
+    if(payload.end <= payload.start){ alert('La hora de fin debe ser después del inicio.'); return; }
+    if(blockId){
+      Object.assign(b, payload);
+    }else{
+      tpl.blocks.push({id:uid(), ...payload});
+    }
+    save(); closeModal(); renderSchedule(); renderHoy();
+  };
+}
+
+/* ================= GRUPOS ================= */
+document.getElementById('addGroupBtn').onclick = ()=>{
+  const name = document.getElementById('newGroupName').value.trim();
+  if(!name) return;
+  const color = document.getElementById('newGroupColor').value;
+  data.groups.push({id:uid(), name, color});
+  document.getElementById('newGroupName').value='';
+  save(); renderGroups();
+};
+
+let groupSubtab = {}; // groupId -> 'tema'|'examen'|'entrega'
+
+function renderGroups(){
+  const wrap = document.getElementById('groupsWrap');
+  if(!data.groups.length){
+    wrap.innerHTML = `<div class="panel"><div class="empty">Aún no tienes grupos. Crea uno arriba para empezar a registrar temas, exámenes y entregas.</div></div>`;
+    return;
+  }
+  wrap.innerHTML = data.groups.map(g=>{
+    const sub = groupSubtab[g.id] || 'tema';
+    const items = data.events.filter(e=>e.groupId===g.id && e.type===sub).sort((a,b)=>a.date.localeCompare(b.date));
+    return `
+    <div class="panel group-card" data-group="${g.id}">
+      <div class="ghead">
+        <h3><span class="swatch" style="background:${g.color}"></span>${esc(g.name)}</h3>
+        <button class="btn sm red" data-delgroup="${g.id}">Eliminar grupo</button>
+      </div>
+      <div class="subtabs">
+        ${['tema','actividad','examen','evento','proyecto'].map(k=>`<button data-sub="${k}" class="${sub===k?'active':''}">${TYPE_META[k].label}</button>`).join('')}
+      </div>
+      <div class="mini-list">
+        ${items.length ? items.map(ev=>`
+          <div class="row-item">
+            <span class="d">${fmtDateHuman(ev.date)}</span>
+            <span style="flex:1;">${esc(ev.title)}</span>
+            <button data-delitem="${ev.id}">✕</button>
+          </div>`).join('') : `<div class="empty">Sin registros de «${TYPE_META[sub].label.toLowerCase()}» aún.</div>`}
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <input type="text" placeholder="${TYPE_META[sub].label}..." data-newitemtext="${g.id}">
+        <input type="date" style="flex:0 0 150px;" data-newitemdate="${g.id}" value="${todayISO()}">
+        <button class="btn sm" data-additem="${g.id}" style="flex:0 0 auto;">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('[data-delgroup]').forEach(b=>{
+    b.onclick = ()=>{
+      if(!confirm('¿Eliminar este grupo? También se borrarán sus temas, exámenes y entregas asociados.')) return;
+      const gid = b.dataset.delgroup;
+      data.groups = data.groups.filter(g=>g.id!==gid);
+      data.events = data.events.filter(e=>e.groupId!==gid);
+      save(); renderGroups(); renderCalendar(); renderHoy();
+    };
+  });
+  wrap.querySelectorAll('[data-sub]').forEach(b=>{
+    b.onclick = ()=>{
+      const card = b.closest('.group-card');
+      groupSubtab[card.dataset.group] = b.dataset.sub;
+      renderGroups();
+    };
+  });
+  wrap.querySelectorAll('[data-delitem]').forEach(b=>{
+    b.onclick = ()=>{
+      data.events = data.events.filter(e=>e.id!==b.dataset.delitem);
+      save(); renderGroups(); renderCalendar(); renderHoy();
+    };
+  });
+  wrap.querySelectorAll('[data-additem]').forEach(b=>{
+    b.onclick = ()=>{
+      const gid = b.dataset.additem;
+      const card = b.closest('.group-card');
+      const sub = groupSubtab[gid] || 'tema';
+      const textInp = card.querySelector(`[data-newitemtext="${gid}"]`);
+      const dateInp = card.querySelector(`[data-newitemdate="${gid}"]`);
+      const title = textInp.value.trim();
+      if(!title) return;
+      data.events.push({id:uid(), title, date:dateInp.value||todayISO(), endDate:dateInp.value||todayISO(), type:sub, scope:'trabajo', groupId:gid, status:'pendiente', notes:''});
+      textInp.value='';
+      save(); renderGroups(); renderCalendar(); renderHoy();
+    };
+  });
+}
+
+/* ================= PENDIENTES (vista completa) ================= */
+let todoFilter = 'all';
+function todoBtn(t){ const st=STATUS[stOf(t)]; return `<button class="stbtn" data-tdst="${t.id}" style="color:${st.color}" title="${st.label} (toca para cambiar)">${st.icon}</button>`; }
+document.getElementById('addTodoBtn').onclick = ()=>{
+  const text = document.getElementById('todoText').value.trim();
+  if(!text) return;
+  const date = document.getElementById('todoDate').value || todayISO();
+  data.todos.push({id:uid(), text, date, done:false});
+  document.getElementById('todoText').value='';
+  save(); renderTodoFullList(); renderHoy();
+};
+document.getElementById('todoDate').value = todayISO();
+document.getElementById('filterAll').onclick = ()=>{ todoFilter='all'; renderTodoFullList(); };
+document.getElementById('filterPending').onclick = ()=>{ todoFilter='pending'; renderTodoFullList(); };
+document.getElementById('filterDone').onclick = ()=>{ todoFilter='done'; renderTodoFullList(); };
+
+function toggleTodo(id){
+  const t = data.todos.find(x=>x.id===id);
+  if(t){ t.status=nextStatus(stOf(t)); t.done=t.status==='hecho'; save(); renderHoy(); renderTodoFullList(); }
+}
+function deleteTodo(id){
+  data.todos = data.todos.filter(x=>x.id!==id);
+  save(); renderHoy(); renderTodoFullList();
+}
+
+function renderTodoFullList(){
+  let list = [...data.todos].sort((a,b)=> a.date.localeCompare(b.date));
+  if(todoFilter==='pending') list = list.filter(t=>!t.done);
+  if(todoFilter==='done') list = list.filter(t=>t.done);
+  const wrap = document.getElementById('todoFullList');
+  wrap.innerHTML = list.length ? list.map(t=>`
+    <div class="todo-row">
+      ${todoBtn(t)}
+      <span class="${t.done?'done':''}" data-todoedit="${t.id}" title="Toca para editar">${esc(t.text)} <small class="muted">· ${fmtDateHuman(t.date)}</small></span>
+      <button data-del="${t.id}">✕</button>
+    </div>`).join('') : `<div class="empty">Nada por aquí.</div>`;
+  wrap.querySelectorAll('input[type=checkbox]').forEach(cb=>{ cb.onchange=()=>toggleTodo(cb.dataset.id); });
+  wrap.querySelectorAll('[data-del]').forEach(b=>{ b.onclick=()=>deleteTodo(b.dataset.del); });
+}
+
+
+/* ================= ACCIONES RÁPIDAS ================= */
+function renderAll(){ renderHoy(); renderCalendar(); renderTodoFullList(); renderGroups(); if(currentDay && overlay.classList.contains('show') && document.getElementById('newEvScope')) openDayModal(currentDay); }
+document.addEventListener('click', e=>{
+  const t=e.target.closest('[data-evst],[data-evedit],[data-todoedit]'); if(!t) return;
+  if(t.dataset.evst){ const ev=data.events.find(x=>x.id===t.dataset.evst); if(ev){ ev.status=nextStatus(stOf(ev)); save(); renderAll(); } }
+  else if(t.dataset.evedit){
+    const ev=data.events.find(x=>x.id===t.dataset.evedit); if(!ev) return;
+    const nt=prompt('Título:',ev.title); if(nt===null) return;
+    const nd=prompt('Fecha (AAAA-MM-DD):',ev.date); if(nd===null) return;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(nd)){ alert('Formato de fecha inválido.'); return; }
+    const single=!ev.endDate||ev.endDate===ev.date;
+    ev.title=nt.trim()||ev.title; ev.date=nd; if(single) ev.endDate=nd;
+    save(); renderAll();
+  }else if(t.dataset.todoedit){
+    const td=data.todos.find(x=>x.id===t.dataset.todoedit); if(!td) return;
+    const nt=prompt('Editar pendiente:',td.text); if(nt===null||!nt.trim()) return;
+    td.text=nt.trim(); save(); renderAll();
+  }
+});
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-tdst]'); if(b) toggleTodo(b.dataset.tdst);
+});
+document.getElementById('importUTLBtn').onclick=()=>{
+  if(!confirm('Se cargará el calendario escolar UTL 2026-2027 (fechas transcritas de la imagen del calendario). Si ya lo habías importado se reemplaza. ¿Continuar?')) return;
+  data.events=data.events.filter(e=>e.source!=='utl');
+  UTL_EVENTS.forEach(([a,b,title,type])=>data.events.push({id:uid(),title,date:a,endDate:b,type,scope:'escuela',groupId:null,materia:'',source:'utl',notes:''}));
+  save(); calCursor=new Date(2026,8,1); renderAll();
+  alert('Listo: calendario UTL cargado. Revisa las fechas y corrige cualquier detalle con ✎ o ✕. Las entregas de tareas de tus profesores las agregas tú.');
+};
+const fab=document.createElement('button'); fab.className='fab'; fab.textContent='+'; fab.title='Agregar'; document.body.appendChild(fab);
+fab.onclick=()=>{
+  openModal(`<h3>¿Qué quieres agregar?</h3>
+    <button class="btn red big" id="fabTodo">✅ Pendiente de hoy</button>
+    <button class="btn big" id="fabEvent">📅 Tarea / examen / evento (calendario)</button>
+    <button class="btn ghost big" id="fabBlock">🕒 Bloque de horario</button>`);
+  document.getElementById('fabTodo').onclick=()=>{ closeModal(); const t=prompt('¿Qué tienes que hacer hoy?'); if(t&&t.trim()){ data.todos.push({id:uid(),text:t.trim(),date:todayISO(),done:false,status:'pendiente'}); save(); renderAll(); } };
+  document.getElementById('fabEvent').onclick=()=>openDayModal(todayISO());
+  document.getElementById('fabBlock').onclick=()=>openBlockModal(null);
+};
+
+
+/* ================= SINCRONIZACIÓN (puente con Firebase) ================= */
+window.getLocalData = ()=>{ if(!data._updatedAt){ data._updatedAt=Date.now(); try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(e){} } return data; };
+window.applyRemoteData = (remote)=>{
+  data = remote;
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){}
+  renderHoy(); renderCalendar(); renderTodoFullList(); renderGroups(); renderSchedule();
+};
+let cloudState = {st:'off'};
+window.cloudStatus = (st,email)=>{ cloudState={st,email}; document.getElementById('cloudBtn').textContent = st==='on' ? '☁️ ✓' : '☁️'; };
+document.getElementById('cloudBtn').onclick = ()=>{
+  if(!window.cloudSignIn){
+    openModal(`<h3>Sincronización</h3><p style="font-size:14px;">Aún no está configurada. Pega los datos de tu proyecto Firebase en el bloque <b>FIREBASE_CONFIG</b> al inicio del código de <b>index.html</b> (los pasos te los di en el chat) y vuelve a subir el archivo.</p>`);
+    return;
+  }
+  if(cloudState.st==='on'){
+    openModal(`<h3>☁️ Sincronizado</h3><p style="font-size:14px;">Sesión: <b>${esc(cloudState.email||'')}</b><br>Los cambios se reflejan en tus otros dispositivos al instante.</p>
+      <div class="modal-actions"><button class="btn ghost" id="cloudOut">Cerrar sesión</button><button class="btn" id="cloudOk">Listo</button></div>`);
+    document.getElementById('cloudOk').onclick=closeModal;
+    document.getElementById('cloudOut').onclick=()=>{ window.cloudSignOut(); closeModal(); };
+    return;
+  }
+  openModal(`<h3>☁️ Sincronizar dispositivos</h3>
+    <p class="muted">Usa el mismo correo y contraseña en tu laptop y tu celular. Entra primero en el dispositivo que tenga más datos.</p>
+    <div class="field"><label>Correo</label><input id="cEmail" type="email" autocomplete="email"></div>
+    <div class="field"><label>Contraseña (mínimo 6)</label><input id="cPass" type="password" autocomplete="current-password"></div>
+    <div class="modal-actions"><button class="btn ghost" id="cUp">Crear cuenta</button><button class="btn red" id="cIn">Entrar</button></div>`);
+  const go = async fn=>{
+    try{ await fn(document.getElementById('cEmail').value.trim(), document.getElementById('cPass').value); closeModal(); }
+    catch(e){ alert('No se pudo: '+(e.code||e.message)); }
+  };
+  document.getElementById('cIn').onclick=()=>go(window.cloudSignIn);
+  document.getElementById('cUp').onclick=()=>go(window.cloudSignUp);
+};
+
+/* ================= INIT ================= */
+renderHoy();
+renderCalendar();
+renderSchedule();
+renderGroups();
+renderTodoFullList();
+</script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore, doc, setDoc, onSnapshot} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg = window.FIREBASE_CONFIG;
+if(cfg && cfg.apiKey && !cfg.apiKey.startsWith('PEGA')){
+  const app=initializeApp(cfg), auth=getAuth(app), db=getFirestore(app);
+  let uid=null, unsub=null, timer=null;
+  const ref=()=>doc(db,'users',uid,'planner','main');
+  window.cloudPush = d=>{
+    if(!uid) return; clearTimeout(timer);
+    timer=setTimeout(()=>setDoc(ref(),{json:JSON.stringify(d),updatedAt:d._updatedAt||Date.now()}).catch(console.error),400);
+  };
+  window.cloudSignIn=(e,p)=>signInWithEmailAndPassword(auth,e,p);
+  window.cloudSignUp=(e,p)=>createUserWithEmailAndPassword(auth,e,p);
+  window.cloudSignOut=()=>signOut(auth);
+  onAuthStateChanged(auth,user=>{
+    if(unsub){unsub();unsub=null;}
+    if(!user){uid=null; window.cloudStatus('signedout'); return;}
+    uid=user.uid; window.cloudStatus('on',user.email);
+    unsub=onSnapshot(ref(),snap=>{
+      if(snap.metadata.hasPendingWrites) return;
+      const local=window.getLocalData();
+      if(!snap.exists()){ window.cloudPush(local); return; }
+      const remote=JSON.parse(snap.data().json);
+      const r=remote._updatedAt||0, l=local._updatedAt||0;
+      if(r>l) window.applyRemoteData(remote); else if(r<l) window.cloudPush(local);
+    },err=>console.error(err));
+  });
+}
+</script>
+</body>
+</html>
