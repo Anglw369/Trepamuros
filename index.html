@@ -770,7 +770,7 @@ function openBlockModal(blockId){
       day: parseInt(document.getElementById('bDay').value),
       type: document.getElementById('bType').value,
       start: document.getElementById('bStart').value,
-      end: document.getElementById('bEnd').value,
+      end: (document.getElementById('bEnd').value==='00:00' ? '23:59' : document.getElementById('bEnd').value),
       location: document.getElementById('bLoc').value.trim(),
     };
     if(payload.end <= payload.start){ alert('La hora de fin debe ser después del inicio.'); return; }
@@ -950,8 +950,10 @@ fab.onclick=()=>{
 
 
 /* ================= SINCRONIZACIÓN (puente con Firebase) ================= */
-window.getLocalData = ()=>{ if(!data._updatedAt){ data._updatedAt=Date.now(); try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(e){} } return data; };
+window.hasContent = d=>!!(d && ((d.events||[]).length || (d.todos||[]).length || (d.groups||[]).length || (d.scheduleTemplates||[]).some(t=>(t.blocks||[]).length)));
+window.getLocalData = ()=>data;
 window.applyRemoteData = (remote)=>{
+  if(window.hasContent(data)){ try{ localStorage.setItem('trepamuros-backup', JSON.stringify({at:Date.now(), data})); }catch(e){} }
   data = remote;
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){}
   renderHoy(); renderCalendar(); renderTodoFullList(); renderGroups(); renderSchedule();
@@ -965,8 +967,13 @@ document.getElementById('cloudBtn').onclick = ()=>{
   }
   if(cloudState.st==='on'){
     openModal(`<h3>☁️ Sincronizado</h3><p style="font-size:14px;">Sesión: <b>${esc(cloudState.email||'')}</b><br>Los cambios se reflejan en tus otros dispositivos al instante.</p>
+      ${localStorage.getItem('trepamuros-backup')?'<button class="btn ghost sm" id="cloudRestore">Restaurar copia de seguridad de este dispositivo</button>':''}
       <div class="modal-actions"><button class="btn ghost" id="cloudOut">Cerrar sesión</button><button class="btn" id="cloudOk">Listo</button></div>`);
     document.getElementById('cloudOk').onclick=closeModal;
+    const rb=document.getElementById('cloudRestore');
+    if(rb) rb.onclick=()=>{
+      try{ const b=JSON.parse(localStorage.getItem('trepamuros-backup')); if(b&&b.data&&confirm('¿Restaurar la copia guardada el '+new Date(b.at).toLocaleString('es-MX')+'? Reemplaza lo actual y se sube a la nube.')){ data=b.data; save(); renderHoy(); renderCalendar(); renderTodoFullList(); renderGroups(); renderSchedule(); closeModal(); } }catch(e){ alert('No se pudo restaurar.'); }
+    };
     document.getElementById('cloudOut').onclick=()=>{ window.cloudSignOut(); closeModal(); };
     return;
   }
@@ -1012,11 +1019,24 @@ if(cfg && cfg.apiKey && !cfg.apiKey.startsWith('PEGA')){
     uid=user.uid; window.cloudStatus('on',user.email);
     unsub=onSnapshot(ref(),snap=>{
       if(snap.metadata.hasPendingWrites) return;
-      const local=window.getLocalData();
-      if(!snap.exists()){ window.cloudPush(local); return; }
+      const local=window.getLocalData(), hc=window.hasContent;
+      const flagKey='trepamuros-linked-'+uid, linked=localStorage.getItem(flagKey)==='1';
+      const mark=()=>localStorage.setItem(flagKey,'1');
+      const upload=()=>{ local._updatedAt=Date.now(); window.cloudPush(local); mark(); };
+      if(!snap.exists()){ if(hc(local)) upload(); else mark(); return; }
       const remote=JSON.parse(snap.data().json);
       const r=remote._updatedAt||0, l=local._updatedAt||0;
-      if(r>l) window.applyRemoteData(remote); else if(r<l) window.cloudPush(local);
+      if(!linked){
+        if(hc(remote) && hc(local)){
+          if(confirm('Este dispositivo y la nube ya tienen datos distintos.\n\nAceptar = usar los de la nube (se guarda copia de los de este dispositivo).\nCancelar = subir los de este dispositivo a la nube.')){ window.applyRemoteData(remote); mark(); }
+          else upload();
+        }else if(hc(remote)){ window.applyRemoteData(remote); mark(); }
+        else if(hc(local)) upload();
+        else mark();
+        return;
+      }
+      if(r>l) window.applyRemoteData(remote);
+      else if(r<l && (hc(local) || !hc(remote))) window.cloudPush(local);
     },err=>console.error(err));
   });
 }
